@@ -3,8 +3,7 @@ import { App } from "octokit";
 
 import { env } from "../../config/env.js";
 
-const privateKeyPath =
-  "/Users/tejasmudholkar/Developer/ai-lab/github-app/codesentinel-ai-reviewer.2026-09-18.private-key.pem";
+const privateKeyPath = env.githubPrivateKeyPath;
 
 const privateKey = readFileSync(privateKeyPath, "utf8");
 

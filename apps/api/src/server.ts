@@ -3,6 +3,7 @@ import rawBody from "fastify-raw-body";
 
 import { env } from "./config/env.js";
 import { githubWebhookRoutes } from "./routes/githubWebhookRoutes.js";
+import { githubInstallationRoutes } from "./routes/githubInstallationRoutes.js";
 
 const app = Fastify({
   logger: true,
@@ -24,6 +25,7 @@ app.get("/health", async () => {
 });
 
 await app.register(githubWebhookRoutes);
+await app.register(githubInstallationRoutes);
 
 try {
   await app.listen({

@@ -5,6 +5,10 @@ import { verifyGithubSignature } from "../services/webhook/verifySignature.js";
 interface PullRequestPayload {
   action?: string;
 
+  installation?: {
+    id?: number;
+  };
+
   repository?: {
     name?: string;
     full_name?: string;
@@ -81,6 +85,7 @@ export async function githubWebhookController(
   const owner = repository?.owner?.login;
   const repo = repository?.name;
   const pullRequestNumber = pullRequest?.number;
+  const installationId = payload.installation?.id;
 
   request.log.info(
     {
@@ -89,6 +94,7 @@ export async function githubWebhookController(
       owner,
       repo,
       pullRequestNumber,
+      installationId,
       title: pullRequest?.title,
       commitSha: pullRequest?.head?.sha,
     },
@@ -102,6 +108,7 @@ export async function githubWebhookController(
       owner,
       repo,
       pullRequestNumber,
+      installationId,
       action,
       commitSha: pullRequest?.head?.sha,
     },

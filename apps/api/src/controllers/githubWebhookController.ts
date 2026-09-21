@@ -7,6 +7,7 @@ import {
   getPullRequestFiles,
 } from "../services/github/pullRequestService.js";
 import { buildReviewInput } from "../services/review/reviewInputService.js";
+import { requestCodeReview } from "../services/review/reviewServiceClient.js";
 
 interface PullRequestPayload {
   action?: string;
@@ -142,23 +143,34 @@ export async function githubWebhookController(
     );
 
     const reviewInput = buildReviewInput(pullRequestData, files);
-
     request.log.info(
       {
-        reviewInput,
+        pullRequestNumber,
+        filesCount: reviewInput.files.length,
       },
       "Review input built",
     );
 
+    const reviewResponse = await requestCodeReview(reviewInput);
+
     request.log.info(
       {
-        pullRequest: pullRequestData,
+        pullRequestNumber,
+        filesAnalyzed: reviewResponse.filesAnalyzed,
+        issuesFound: reviewResponse.issuesFound,
+      },
+      "Code review completed",
+    );
+
+    request.log.info(
+      {
+        pullRequestNumber,
         filesCount: files.length,
       },
       "Pull request data retrieved",
     );
 
-    return reply.code(202).send({
+    return reply.code(200).send({
       success: true,
       message: "Pull request review accepted",
       data: {
@@ -169,6 +181,7 @@ export async function githubWebhookController(
         action,
         commitSha: pullRequest?.head?.sha,
         filesCount: files.length,
+        review: reviewResponse,
       },
     });
   } catch (error) {

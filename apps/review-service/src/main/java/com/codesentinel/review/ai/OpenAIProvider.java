@@ -24,32 +24,43 @@ public class OpenAIProvider implements AIProvider {
     @Override
     public List<ReviewFinding> analyze(ReviewRequest request) {
 
-        String prompt = buildReviewPrompt(request);
+        try {
+            String prompt = buildReviewPrompt(request);
 
-        StructuredResponseCreateParams<AIReviewOutput> params =
-                ResponseCreateParams.builder()
-                        .input(prompt)
-                        .model("gpt-5")
-                        .text(AIReviewOutput.class)
-                        .build();
+            StructuredResponseCreateParams<AIReviewOutput> params =
+                    ResponseCreateParams.builder()
+                            .input(prompt)
+                            .model("gpt-5")
+                            .text(AIReviewOutput.class)
+                            .build();
 
-        AIReviewOutput output =
-                openAIClient
-                        .responses()
-                        .create(params)
-                        .output()
-                        .stream()
-                        .flatMap(item -> item.message().stream())
-                        .flatMap(message -> message.content().stream())
-                        .flatMap(content -> content.outputText().stream())
-                        .findFirst()
-                        .orElseThrow(
-                                () -> new IllegalStateException(
-                                        "OpenAI returned no structured review output"
-                                )
-                        );
+            AIReviewOutput output =
+                    openAIClient
+                            .responses()
+                            .create(params)
+                            .output()
+                            .stream()
+                            .flatMap(item -> item.message().stream())
+                            .flatMap(message -> message.content().stream())
+                            .flatMap(content -> content.outputText().stream())
+                            .findFirst()
+                            .orElseThrow(
+                                    () -> new AIProviderException(
+                                            "AI provider returned no review output"
+                                    )
+                            );
 
-        return mapFindings(output);
+            return mapFindings(output);
+
+        } catch (AIProviderException exception) {
+            throw exception;
+
+        } catch (Exception exception) {
+            throw new AIProviderException(
+                    "AI code analysis failed",
+                    exception
+            );
+        }
     }
 
     private String buildReviewPrompt(ReviewRequest request) {

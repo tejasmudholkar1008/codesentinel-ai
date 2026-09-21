@@ -1,6 +1,13 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
+
 import { env } from "../config/env.js";
 import { verifyGithubSignature } from "../services/webhook/verifySignature.js";
+import {
+  getPullRequest,
+  getPullRequestFiles,
+} from "../services/github/pullRequestService.js";
+import { buildReviewInput } from "../services/review/reviewInputService.js";
+import { requestCodeReview } from "../services/review/reviewServiceClient.js";
 
 interface PullRequestPayload {
   action?: string;
@@ -66,7 +73,6 @@ export async function githubWebhookController(
   }
 
   const payload = request.body as PullRequestPayload;
-
   const action = payload.action;
 
   const supportedActions = ["opened", "synchronize", "reopened"];
@@ -87,6 +93,24 @@ export async function githubWebhookController(
   const pullRequestNumber = pullRequest?.number;
   const installationId = payload.installation?.id;
 
+  // Validate the information required to access the PR.
+  if (!installationId || !owner || !repo || !pullRequestNumber) {
+    request.log.error(
+      {
+        installationId,
+        owner,
+        repo,
+        pullRequestNumber,
+      },
+      "Incomplete pull request webhook payload",
+    );
+
+    return reply.code(400).send({
+      success: false,
+      message: "Incomplete pull request webhook payload",
+    });
+  }
+
   request.log.info(
     {
       event,
@@ -101,16 +125,80 @@ export async function githubWebhookController(
     "Pull request webhook received",
   );
 
-  return reply.code(202).send({
-    success: true,
-    message: "Pull request review accepted",
-    data: {
+  try {
+    // Retrieve pull request metadata from GitHub.
+    const pullRequestData = await getPullRequest(
+      installationId,
       owner,
       repo,
       pullRequestNumber,
+    );
+
+    // Retrieve changed files and their patches.
+    const files = await getPullRequestFiles(
       installationId,
-      action,
-      commitSha: pullRequest?.head?.sha,
-    },
-  });
+      owner,
+      repo,
+      pullRequestNumber,
+    );
+
+    const reviewInput = buildReviewInput(pullRequestData, files);
+    request.log.info(
+      {
+        pullRequestNumber,
+        filesCount: reviewInput.files.length,
+      },
+      "Review input built",
+    );
+
+    const reviewResponse = await requestCodeReview(reviewInput);
+
+    request.log.info(
+      {
+        pullRequestNumber,
+        filesAnalyzed: reviewResponse.filesAnalyzed,
+        issuesFound: reviewResponse.issuesFound,
+      },
+      "Code review completed",
+    );
+
+    request.log.info(
+      {
+        pullRequestNumber,
+        filesCount: files.length,
+      },
+      "Pull request data retrieved",
+    );
+
+    return reply.code(200).send({
+      success: true,
+      message: "Pull request review accepted",
+      data: {
+        owner,
+        repo,
+        pullRequestNumber,
+        installationId,
+        action,
+        commitSha: pullRequest?.head?.sha,
+        filesCount: files.length,
+        review: reviewResponse,
+      },
+    });
+  } catch (error) {
+    request.log.error(
+      {
+        error,
+        owner,
+        repo,
+        pullRequestNumber,
+        installationId,
+      },
+      "Failed to retrieve pull request data",
+    );
+
+    return reply.code(500).send({
+      success: false,
+      message: "Failed to retrieve pull request data",
+    });
+  }
 }

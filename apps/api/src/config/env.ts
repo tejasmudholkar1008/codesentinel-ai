@@ -3,6 +3,8 @@ import "dotenv/config";
 const port = Number(process.env.PORT ?? 3000);
 const githubAppId = Number(process.env.GITHUB_APP_ID ?? 0);
 const githubPrivateKeyPath = process.env.GITHUB_PRIVATE_KEY_PATH ?? "";
+const reviewServiceUrl =
+  process.env.REVIEW_SERVICE_URL ?? "http://localhost:8081";
 
 if (Number.isNaN(port)) {
   throw new Error("PORT must be a valid number");
@@ -22,4 +24,5 @@ export const env = {
   githubWebhookSecret: process.env.GITHUB_WEBHOOK_SECRET ?? "",
   githubAppId,
   githubPrivateKeyPath,
+  reviewServiceUrl,
 };

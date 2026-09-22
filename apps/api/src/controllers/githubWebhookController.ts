@@ -8,6 +8,8 @@ import {
 } from "../services/github/pullRequestService.js";
 import { buildReviewInput } from "../services/review/reviewInputService.js";
 import { requestCodeReview } from "../services/review/reviewServiceClient.js";
+import { buildReviewComments } from "../services/review/reviewFindingMapper.js";
+import { submitPullRequestReview } from "../services/github/pullRequestReviewService.js";
 
 interface PullRequestPayload {
   action?: string;
@@ -142,7 +144,16 @@ export async function githubWebhookController(
       pullRequestNumber,
     );
 
+    request.log.info(
+      {
+        pullRequestNumber,
+        filesCount: files.length,
+      },
+      "Pull request data retrieved",
+    );
+
     const reviewInput = buildReviewInput(pullRequestData, files);
+
     request.log.info(
       {
         pullRequestNumber,
@@ -162,13 +173,39 @@ export async function githubWebhookController(
       "Code review completed",
     );
 
+    const { comments, skippedFindings } = buildReviewComments(
+      reviewResponse.findings,
+      reviewInput.files,
+    );
+
     request.log.info(
       {
         pullRequestNumber,
-        filesCount: files.length,
+        commentsCount: comments.length,
+        skippedFindingsCount: skippedFindings.length,
       },
-      "Pull request data retrieved",
+      "Review findings mapped to GitHub comments",
     );
+
+    if (comments.length > 0) {
+      await submitPullRequestReview({
+        installationId,
+        owner,
+        repo,
+        pullRequestNumber,
+        commitId: pullRequestData.headSha,
+        body: `CodeSentinel AI found ${reviewResponse.issuesFound} issue(s) in this pull request.`,
+        comments,
+      });
+
+      request.log.info(
+        {
+          pullRequestNumber,
+          commentsCount: comments.length,
+        },
+        "GitHub pull request review submitted",
+      );
+    }
 
     return reply.code(200).send({
       success: true,
@@ -193,12 +230,12 @@ export async function githubWebhookController(
         pullRequestNumber,
         installationId,
       },
-      "Failed to retrieve pull request data",
+      "Failed to process pull request review",
     );
 
     return reply.code(500).send({
       success: false,
-      message: "Failed to retrieve pull request data",
+      message: "Failed to process pull request review",
     });
   }
 }

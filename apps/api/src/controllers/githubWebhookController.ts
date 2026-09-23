@@ -152,7 +152,11 @@ export async function githubWebhookController(
       "Pull request data retrieved",
     );
 
-    const reviewInput = buildReviewInput(pullRequestData, files);
+    const reviewInput = buildReviewInput(
+      pullRequestData,
+      files,
+      `${owner}/${repo}`,
+    );
 
     request.log.info(
       {

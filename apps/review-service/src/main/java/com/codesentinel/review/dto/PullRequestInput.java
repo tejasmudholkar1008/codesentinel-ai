@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Positive;
 
 public record PullRequestInput(
 
+        @NotBlank
+        String repository,
+
         @Positive
         int number,
 

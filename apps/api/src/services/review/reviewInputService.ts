@@ -14,6 +14,7 @@ export interface ReviewInputFile {
 
 export interface ReviewInput {
   pullRequest: {
+    repository: string;
     number: number;
     title: string;
     description: string | null;
@@ -29,9 +30,11 @@ export interface ReviewInput {
 export function buildReviewInput(
   pullRequest: PullRequestDetails,
   files: PullRequestFile[],
+  repository: string,
 ): ReviewInput {
   return {
     pullRequest: {
+      repository,
       number: pullRequest.number,
       title: pullRequest.title,
       description: pullRequest.body,

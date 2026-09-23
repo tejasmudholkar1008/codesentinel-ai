@@ -2,6 +2,16 @@ spring:
   application:
     name: codesentinel-review-service
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/codesentinel_db
+    username: tejas
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
 server:
   port: 8081
 

@@ -13,6 +13,31 @@ The GitHub review service submits the valid comments through the GitHub Pull Req
 ## 2. Architecture Diagram
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#00000000",
+    "primaryColor": "#0B3045",
+    "primaryTextColor": "#B8CFDC",
+    "primaryBorderColor": "#176080",
+    "secondaryColor": "#0B3045",
+    "secondaryTextColor": "#B8CFDC",
+    "secondaryBorderColor": "#176080",
+    "tertiaryColor": "#0B3045",
+    "tertiaryTextColor": "#B8CFDC",
+    "tertiaryBorderColor": "#176080",
+    "lineColor": "#176080",
+    "textColor": "#B8CFDC",
+    "mainBkg": "#0B3045",
+    "nodeBorder": "#176080",
+    "clusterBkg": "#0B3045",
+    "clusterBorder": "#176080",
+    "titleColor": "#B8CFDC",
+    "edgeLabelBackground": "#0B3045",
+    "fontFamily": "Arial, sans-serif"
+  }
+}}%%
 flowchart TD
     A["GitHub Pull Request"] --> B["Node.js API / Review Worker"]
     B --> C["Build ReviewInput"]
@@ -99,6 +124,31 @@ AI-generated line numbers cannot be assumed to be valid simply because they refe
 The mapper therefore validates findings against the changed lines available in the pull request patches.
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#00000000",
+    "primaryColor": "#0B3045",
+    "primaryTextColor": "#B8CFDC",
+    "primaryBorderColor": "#176080",
+    "secondaryColor": "#0B3045",
+    "secondaryTextColor": "#B8CFDC",
+    "secondaryBorderColor": "#176080",
+    "tertiaryColor": "#0B3045",
+    "tertiaryTextColor": "#B8CFDC",
+    "tertiaryBorderColor": "#176080",
+    "lineColor": "#176080",
+    "textColor": "#B8CFDC",
+    "mainBkg": "#0B3045",
+    "nodeBorder": "#176080",
+    "clusterBkg": "#0B3045",
+    "clusterBorder": "#176080",
+    "titleColor": "#B8CFDC",
+    "edgeLabelBackground": "#0B3045",
+    "fontFamily": "Arial, sans-serif"
+  }
+}}%%
 flowchart TD
     A["AI Finding"] --> B["Read File and Line Information"]
     B --> C["Locate Changed File Patch"]

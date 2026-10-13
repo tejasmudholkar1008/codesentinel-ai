@@ -16,6 +16,31 @@ The Node.js API and worker can run as separate processes from the same codebase,
 ## 2. Deployment Architecture Diagram
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#00000000",
+    "primaryColor": "#0B3045",
+    "primaryTextColor": "#B8CFDC",
+    "primaryBorderColor": "#176080",
+    "secondaryColor": "#0B3045",
+    "secondaryTextColor": "#B8CFDC",
+    "secondaryBorderColor": "#176080",
+    "tertiaryColor": "#0B3045",
+    "tertiaryTextColor": "#B8CFDC",
+    "tertiaryBorderColor": "#176080",
+    "lineColor": "#176080",
+    "textColor": "#B8CFDC",
+    "mainBkg": "#0B3045",
+    "nodeBorder": "#176080",
+    "clusterBkg": "#0B3045",
+    "clusterBorder": "#176080",
+    "titleColor": "#B8CFDC",
+    "edgeLabelBackground": "#0B3045",
+    "fontFamily": "Arial, sans-serif"
+  }
+}}%%
 flowchart TB
     DEV["Developer"] --> GH["GitHub Repository"]
     GH -->|"Pull request webhook"| API
@@ -75,6 +100,31 @@ The worker command is an intended project script and should be verified in `apps
 ## 4. Local Infrastructure Diagram
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#00000000",
+    "primaryColor": "#0B3045",
+    "primaryTextColor": "#B8CFDC",
+    "primaryBorderColor": "#176080",
+    "secondaryColor": "#0B3045",
+    "secondaryTextColor": "#B8CFDC",
+    "secondaryBorderColor": "#176080",
+    "tertiaryColor": "#0B3045",
+    "tertiaryTextColor": "#B8CFDC",
+    "tertiaryBorderColor": "#176080",
+    "lineColor": "#176080",
+    "textColor": "#B8CFDC",
+    "mainBkg": "#0B3045",
+    "nodeBorder": "#176080",
+    "clusterBkg": "#0B3045",
+    "clusterBorder": "#176080",
+    "titleColor": "#B8CFDC",
+    "edgeLabelBackground": "#0B3045",
+    "fontFamily": "Arial, sans-serif"
+  }
+}}%%
 flowchart LR
     subgraph MACHINE["Developer Machine"]
         subgraph DOCKER["Docker Compose"]

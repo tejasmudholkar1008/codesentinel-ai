@@ -18,6 +18,31 @@ Tests that require external services or credentials should be run separately fro
 ## 2. Testing Architecture
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#00000000",
+    "primaryColor": "#0B3045",
+    "primaryTextColor": "#B8CFDC",
+    "primaryBorderColor": "#176080",
+    "secondaryColor": "#0B3045",
+    "secondaryTextColor": "#B8CFDC",
+    "secondaryBorderColor": "#176080",
+    "tertiaryColor": "#0B3045",
+    "tertiaryTextColor": "#B8CFDC",
+    "tertiaryBorderColor": "#176080",
+    "lineColor": "#176080",
+    "textColor": "#B8CFDC",
+    "mainBkg": "#0B3045",
+    "nodeBorder": "#176080",
+    "clusterBkg": "#0B3045",
+    "clusterBorder": "#176080",
+    "titleColor": "#B8CFDC",
+    "edgeLabelBackground": "#0B3045",
+    "fontFamily": "Arial, sans-serif"
+  }
+}}%%
 flowchart TD
     A["CodeSentinel AI Testing"] --> B["Node.js API Tests"]
     A --> C["Java Review Service Tests"]

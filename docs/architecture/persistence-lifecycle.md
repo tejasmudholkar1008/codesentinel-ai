@@ -17,6 +17,31 @@ The persistence lifecycle helps prevent unnecessary repeated AI analysis and pro
 ## 2. Persistence Architecture
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#00000000",
+    "primaryColor": "#0B3045",
+    "primaryTextColor": "#B8CFDC",
+    "primaryBorderColor": "#176080",
+    "secondaryColor": "#0B3045",
+    "secondaryTextColor": "#B8CFDC",
+    "secondaryBorderColor": "#176080",
+    "tertiaryColor": "#0B3045",
+    "tertiaryTextColor": "#B8CFDC",
+    "tertiaryBorderColor": "#176080",
+    "lineColor": "#176080",
+    "textColor": "#B8CFDC",
+    "mainBkg": "#0B3045",
+    "nodeBorder": "#176080",
+    "clusterBkg": "#0B3045",
+    "clusterBorder": "#176080",
+    "titleColor": "#B8CFDC",
+    "edgeLabelBackground": "#0B3045",
+    "fontFamily": "Arial, sans-serif"
+  }
+}}%%
 flowchart TD
     A["ReviewController"] --> B["ReviewService"]
     B --> C["ReviewRepository"]
@@ -64,6 +89,31 @@ The database's unique constraint protects against storing multiple review record
 ## 4. Persistence Lifecycle
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#00000000",
+    "primaryColor": "#0B3045",
+    "primaryTextColor": "#B8CFDC",
+    "primaryBorderColor": "#176080",
+    "secondaryColor": "#0B3045",
+    "secondaryTextColor": "#B8CFDC",
+    "secondaryBorderColor": "#176080",
+    "tertiaryColor": "#0B3045",
+    "tertiaryTextColor": "#B8CFDC",
+    "tertiaryBorderColor": "#176080",
+    "lineColor": "#176080",
+    "textColor": "#B8CFDC",
+    "mainBkg": "#0B3045",
+    "nodeBorder": "#176080",
+    "clusterBkg": "#0B3045",
+    "clusterBorder": "#176080",
+    "titleColor": "#B8CFDC",
+    "edgeLabelBackground": "#0B3045",
+    "fontFamily": "Arial, sans-serif"
+  }
+}}%%
 stateDiagram-v2
     [*] --> IN_PROGRESS: Create review
 
@@ -96,6 +146,31 @@ A later request can retry the review.
 ## 5. Database Interaction Sequence
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#00000000",
+    "primaryColor": "#0B3045",
+    "primaryTextColor": "#B8CFDC",
+    "primaryBorderColor": "#176080",
+    "secondaryColor": "#0B3045",
+    "secondaryTextColor": "#B8CFDC",
+    "secondaryBorderColor": "#176080",
+    "tertiaryColor": "#0B3045",
+    "tertiaryTextColor": "#B8CFDC",
+    "tertiaryBorderColor": "#176080",
+    "lineColor": "#176080",
+    "textColor": "#B8CFDC",
+    "mainBkg": "#0B3045",
+    "nodeBorder": "#176080",
+    "clusterBkg": "#0B3045",
+    "clusterBorder": "#176080",
+    "titleColor": "#B8CFDC",
+    "edgeLabelBackground": "#0B3045",
+    "fontFamily": "Arial, sans-serif"
+  }
+}}%%
 sequenceDiagram
     participant API as ReviewController
     participant S as ReviewService

@@ -21,3 +21,5 @@ export function hasAdminAccess(user) {
   // Issue 5: Incorrect authorization logic.
   return user.role !== "user";
 }
+
+// Duplicate-comment test: harmless change.

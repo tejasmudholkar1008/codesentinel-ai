@@ -7,9 +7,7 @@ import {
   getPullRequestFiles,
 } from "../services/github/pullRequestService.js";
 import { buildReviewInput } from "../services/review/reviewInputService.js";
-import { requestCodeReview } from "../services/review/reviewServiceClient.js";
-import { buildReviewComments } from "../services/review/reviewFindingMapper.js";
-import { submitPullRequestReview } from "../services/github/pullRequestReviewService.js";
+import { reviewQueue } from "../queues/reviewQueue.js";
 
 interface PullRequestPayload {
   action?: string;
@@ -40,10 +38,9 @@ export async function githubWebhookController(
   reply: FastifyReply,
 ) {
   const signature = request.headers["x-hub-signature-256"];
-
-  // Use the original raw request body for GitHub signature verification.
   const rawBody = request.rawBody;
 
+  // Verify GitHub's signature against the original request body.
   if (!rawBody) {
     return reply.code(400).send({
       success: false,
@@ -66,7 +63,7 @@ export async function githubWebhookController(
 
   const event = request.headers["x-github-event"];
 
-  // We only process pull_request events.
+  // Process only pull_request events.
   if (event !== "pull_request") {
     return reply.code(200).send({
       success: true,
@@ -75,11 +72,10 @@ export async function githubWebhookController(
   }
 
   const payload = request.body as PullRequestPayload;
-  const action = payload.action;
+  const action = payload?.action;
 
   const supportedActions = ["opened", "synchronize", "reopened"];
 
-  // Ignore unsupported PR actions.
   if (!action || !supportedActions.includes(action)) {
     return reply.code(200).send({
       success: true,
@@ -87,16 +83,25 @@ export async function githubWebhookController(
     });
   }
 
-  const repository = payload.repository;
-  const pullRequest = payload.pull_request;
+  const repository = payload?.repository;
+  const pullRequest = payload?.pull_request;
 
   const owner = repository?.owner?.login;
   const repo = repository?.name;
   const pullRequestNumber = pullRequest?.number;
-  const installationId = payload.installation?.id;
+  const installationId = payload?.installation?.id;
 
-  // Validate the information required to access the PR.
-  if (!installationId || !owner || !repo || !pullRequestNumber) {
+  // Validate all required webhook fields before accessing them.
+  if (
+    installationId == null ||
+    !owner ||
+    !repo ||
+    pullRequestNumber == null ||
+    !Number.isInteger(pullRequestNumber) ||
+    pullRequestNumber < 1 ||
+    !pullRequest?.title ||
+    !pullRequest.head?.sha
+  ) {
     request.log.error(
       {
         installationId,
@@ -121,8 +126,8 @@ export async function githubWebhookController(
       repo,
       pullRequestNumber,
       installationId,
-      title: pullRequest?.title,
-      commitSha: pullRequest?.head?.sha,
+      title: pullRequest.title,
+      commitSha: pullRequest.head.sha,
     },
     "Pull request webhook received",
   );
@@ -152,77 +157,80 @@ export async function githubWebhookController(
       "Pull request data retrieved",
     );
 
+    // Build the payload consumed by the Java review service.
     const reviewInput = buildReviewInput(
       pullRequestData,
       files,
       `${owner}/${repo}`,
     );
 
+    const headSha = reviewInput.pullRequest.headSha;
+
+    if (!headSha) {
+      request.log.error(
+        { owner, repo, pullRequestNumber },
+        "Missing pull request head SHA",
+      );
+
+      return reply.code(400).send({
+        success: false,
+        message: "Missing pull request head SHA",
+      });
+    }
+
     request.log.info(
       {
         pullRequestNumber,
         filesCount: reviewInput.files.length,
+        headSha,
       },
       "Review input built",
     );
 
-    const reviewResponse = await requestCodeReview(reviewInput);
+    // Use the repository, PR number, and commit SHA to identify this review.
+    // This suppresses duplicate jobs while the job ID remains in Redis.
+    const jobId = `${owner}-${repo}-pr-${pullRequestNumber}-${headSha}`;
 
-    request.log.info(
+    const job = await reviewQueue.add(
+      "review-pull-request",
       {
-        pullRequestNumber,
-        filesAnalyzed: reviewResponse.filesAnalyzed,
-        issuesFound: reviewResponse.issuesFound,
-      },
-      "Code review completed",
-    );
-
-    const { comments, skippedFindings } = buildReviewComments(
-      reviewResponse.findings,
-      reviewInput.files,
-    );
-
-    request.log.info(
-      {
-        pullRequestNumber,
-        commentsCount: comments.length,
-        skippedFindingsCount: skippedFindings.length,
-      },
-      "Review findings mapped to GitHub comments",
-    );
-
-    if (comments.length > 0) {
-      await submitPullRequestReview({
         installationId,
         owner,
         repo,
+        reviewInput,
+      },
+      {
+        jobId,
+      },
+    );
+
+    request.log.info(
+      {
+        jobId: job.id,
+        owner,
+        repo,
         pullRequestNumber,
-        commitId: pullRequestData.headSha,
-        body: `CodeSentinel AI found ${reviewResponse.issuesFound} issue(s) in this pull request.`,
-        comments,
-      });
+        installationId,
+        headSha,
+        filesCount: reviewInput.files.length,
+      },
+      "Pull request review enqueued",
+    );
 
-      request.log.info(
-        {
-          pullRequestNumber,
-          commentsCount: comments.length,
-        },
-        "GitHub pull request review submitted",
-      );
-    }
-
-    return reply.code(200).send({
+    // Return immediately after enqueueing; the worker processes the review.
+    return reply.code(202).send({
       success: true,
-      message: "Pull request review accepted",
+      message: "Pull request review queued for processing",
       data: {
         owner,
         repo,
         pullRequestNumber,
         installationId,
         action,
-        commitSha: pullRequest?.head?.sha,
-        filesCount: files.length,
-        review: reviewResponse,
+        commitSha: headSha,
+        filesCount: reviewInput.files.length,
+        jobId: job.id,
+        status: "QUEUED",
       },
     });
   } catch (error) {
@@ -234,12 +242,12 @@ export async function githubWebhookController(
         pullRequestNumber,
         installationId,
       },
-      "Failed to process pull request review",
+      "Failed to enqueue pull request review",
     );
 
     return reply.code(500).send({
       success: false,
-      message: "Failed to process pull request review",
+      message: "Failed to enqueue pull request review",
     });
   }
 }

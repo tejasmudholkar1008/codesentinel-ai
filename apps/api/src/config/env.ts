@@ -5,6 +5,7 @@ const githubAppId = Number(process.env.GITHUB_APP_ID ?? 0);
 const githubPrivateKeyPath = process.env.GITHUB_PRIVATE_KEY_PATH ?? "";
 const reviewServiceUrl =
   process.env.REVIEW_SERVICE_URL ?? "http://localhost:8081";
+const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379";
 
 if (Number.isNaN(port)) {
   throw new Error("PORT must be a valid number");
@@ -18,6 +19,10 @@ if (!githubPrivateKeyPath) {
   throw new Error("GITHUB_PRIVATE_KEY_PATH must be provided");
 }
 
+if (!redisUrl) {
+  throw new Error("REDIS_URL must be provided");
+}
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port,
@@ -25,4 +30,5 @@ export const env = {
   githubAppId,
   githubPrivateKeyPath,
   reviewServiceUrl,
+  redisUrl,
 };
